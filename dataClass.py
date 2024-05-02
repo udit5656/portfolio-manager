@@ -11,8 +11,8 @@ class TransactionType(enum.Enum):
 
 
 @dataclass
-class DataEquityPortfolio:
-    data: str
+class GoogleSheetTransaction:
+    date: str
     type: TransactionType
     stock: str
     units: int
