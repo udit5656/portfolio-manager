@@ -11,6 +11,7 @@ import json
 from json import JSONEncoder
 from listedCompanies import Exchanges
 from Constants import constant
+from dataClass import TransactionType
 
 
 def get_working_dir():
@@ -29,7 +30,12 @@ class GrowwReport:
         self.transactions.append(transaction)
 
     def read_report(self):
-        first_cell = self.get_first_trans() + 1
+        self.read_trades(constant.REALISED_TRADES)
+        self.read_trades(constant.UNREALISED_TRADES)
+        print(len(self.transactions))
+
+    def read_trades(self, trade_type):
+        first_cell = self.get_first_trans(trade_type) + 3
         for transaction in self.sheet.iter_rows(
             min_row=first_cell,
             max_row=first_cell + constant.MAX_TRANSACTIONS,
@@ -40,19 +46,36 @@ class GrowwReport:
             if transaction[0] is None:
                 break
 
-            self.transactions.append(
-                GrowwTransaction(
+            self.add_buy_transaction(
+                transaction[0],
+                transaction[1],
+                transaction[2],
+                transaction[3],
+                transaction[4],
+            )
+
+            if trade_type == constant.REALISED_TRADES:
+                self.add_sell_transaction(
                     transaction[0],
                     transaction[1],
                     transaction[2],
-                    transaction[3],
-                    transaction[4],
-                    transaction[5],
                     transaction[6],
                     transaction[7],
                 )
+
+    def add_buy_transaction(self, stock_name, ISIN, quantity, date, price):
+        self.transactions.append(
+            GrowwTransaction(
+                TransactionType.BUY, stock_name, ISIN, quantity, date, price
             )
-        print(len(self.transactions))
+        )
+
+    def add_sell_transaction(self, stock_name, ISIN, quantity, date, price):
+        self.transactions.append(
+            GrowwTransaction(
+                TransactionType.SELL, stock_name, ISIN, quantity, date, price
+            )
+        )
 
     def save_transactions(self):
         json_transactions = []
@@ -62,35 +85,31 @@ class GrowwReport:
         json.dump(json_transactions, json_file, indent=4, ensure_ascii=False)
         json_file.close()
 
-    def get_first_trans(self):
+    def get_first_trans(self, title):
         for idx in range(1, 1000):
             cell_value = self.sheet[f"A{idx}"].value
-            if cell_value == constant.FIRST_TITLE:
+            if cell_value == title:
                 return idx
-        raise Exception(f"Cell with {constant.FIRST_TITLE}")
+        raise Exception(f"Cell with {title}")
 
 
 class GrowwTransaction:
 
     def __init__(
         self,
+        transaction_type,
         stock_name,
         ISIN,
         quantity,
-        buy_date,
-        buy_price,
-        sell_date,
-        sell_price,
-        sell_value,
+        date,
+        price,
     ):
+        self.type = transaction_type
         self.stockName = stock_name
         self.ISIN = ISIN
         self.quantity = quantity
-        self.buyDate = buy_date
-        self.buyPrice = buy_price
-        self.sellDate = sell_date
-        self.sellPrice = sell_price
-        self.sellValue = sell_value
+        self.date = date
+        self.price = price
         self.symbol = GrowwReport.exchanges.find_symbol(self.ISIN)
         print(f"{stock_name} : {self.symbol}")
 

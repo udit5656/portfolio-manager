@@ -42,7 +42,9 @@ class ListedCompanies:
 
 class Groww:
     GROWW_REPORT = f"{ASSETS}/report.xlsx"
-    FIRST_TITLE = "Stock name"
+    STOCK_NAME = "Stock name"
+    REALISED_TRADES = "Realised trades"
+    UNREALISED_TRADES = "Unrealised trades"
     JSON_FILE = f"{ASSETS}/transactions.json"
     MAX_TRANSACTIONS = 5000
     MAX_COMPANIES = 6000
